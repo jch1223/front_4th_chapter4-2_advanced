@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -108,9 +108,10 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
     times: [],
     majors: [],
   });
+  const [majors, setMajors] = useState<string[]>([]);
 
   const getFilteredLectures = useCallback(() => {
-    const { query = '', credits, grades, days, times, majors } = searchOptions;
+    const { query = '', credits, grades, days, times } = searchOptions;
     return lectures
       .filter(lecture =>
         lecture.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -133,12 +134,12 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
         const schedules = lecture.schedule ? parseSchedule(lecture.schedule) : [];
         return schedules.some(s => s.range.some(time => times.includes(time)));
       });
-  }, [lectures, searchOptions]);
+  }, [lectures, searchOptions, majors]);
 
   const filteredLectures = useMemo(getFilteredLectures, [getFilteredLectures]);
   const lastPage = Math.ceil(filteredLectures.length / PAGE_SIZE);
   const visibleLectures = filteredLectures.slice(0, page * PAGE_SIZE);
-  const allMajors = [...new Set(lectures.map(lecture => lecture.major))];
+  const allMajors = useMemo(() => [...new Set(lectures.map(lecture => lecture.major))], [lectures]);
 
   const changeSearchOption = (field: keyof SearchOption, value: SearchOption[typeof field]) => {
     setPage(1);
@@ -298,34 +299,11 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
                 </CheckboxGroup>
               </FormControl>
 
-              <FormControl>
-                <FormLabel>전공</FormLabel>
-                <CheckboxGroup
-                  colorScheme="green"
-                  value={searchOptions.majors}
-                  onChange={(values) => changeSearchOption('majors', values as string[])}
-                >
-                  <Wrap spacing={1} mb={2}>
-                    {searchOptions.majors.map(major => (
-                      <Tag key={major} size="sm" variant="outline" colorScheme="blue">
-                        <TagLabel>{major.split("<p>").pop()}</TagLabel>
-                        <TagCloseButton
-                          onClick={() => changeSearchOption('majors', searchOptions.majors.filter(v => v !== major))}/>
-                      </Tag>
-                    ))}
-                  </Wrap>
-                  <Stack spacing={2} overflowY="auto" h="100px" border="1px solid" borderColor="gray.200"
-                         borderRadius={5} p={2}>
-                    {allMajors.map(major => (
-                      <Box key={major}>
-                        <Checkbox key={major} id={`major-${major}`} size="sm" value={major}>
-                          {major.replace(/<p>/gi, ' ')}
-                        </Checkbox>
-                      </Box>
-                    ))}
-                  </Stack>
-                </CheckboxGroup>
-              </FormControl>
+              <MajorFilter
+                allMajors={allMajors}
+                selectedMajors={majors}
+                onChange={setMajors}
+              />
             </HStack>
             <Text align="right">
               검색결과: {filteredLectures.length}개
@@ -372,5 +350,49 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
     </Modal>
   );
 };
+
+const MajorFilter = React.memo(({ 
+  allMajors, 
+  selectedMajors, 
+  onChange 
+}: { 
+  allMajors: string[], 
+  selectedMajors: string[], 
+  onChange: (majors: string[]) => void 
+}) => {
+  const handleRemoveMajor = useCallback((majorToRemove: string) => {
+    onChange(selectedMajors.filter(major => major !== majorToRemove));
+  }, [selectedMajors, onChange]);
+
+  return (
+    <FormControl>
+      <FormLabel>전공</FormLabel>
+      <CheckboxGroup
+        colorScheme="green"
+        value={selectedMajors}
+        onChange={(values) => onChange(values as string[])}
+      >
+        <Wrap spacing={1} mb={2}>
+          {selectedMajors.map(major => (
+            <Tag key={major} size="sm" variant="outline" colorScheme="blue">
+              <TagLabel>{major.split("<p>").pop()}</TagLabel>
+              <TagCloseButton onClick={() => handleRemoveMajor(major)} />
+            </Tag>
+          ))}
+        </Wrap>
+        <Stack spacing={2} overflowY="auto" h="100px" border="1px solid" borderColor="gray.200"
+               borderRadius={5} p={2}>
+          {allMajors.map(major => (
+            <Box key={major}>
+              <Checkbox key={major} id={`major-${major}`} size="sm" value={major}>
+                {major.replace(/<p>/gi, ' ')}
+              </Checkbox>
+            </Box>
+          ))}
+        </Stack>
+      </CheckboxGroup>
+    </FormControl>
+  );
+});
 
 export default SearchDialog;
