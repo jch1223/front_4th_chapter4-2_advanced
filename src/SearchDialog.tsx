@@ -249,7 +249,7 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
                 >
                   <HStack spacing={4}>
                     {[1, 2, 3, 4].map(grade => (
-                      <Checkbox key={grade} value={grade}>{grade}학년</Checkbox>
+                      <Checkbox key={grade} id={`grade-${grade}`} value={grade} >{grade}학년</Checkbox>
                     ))}
                   </HStack>
                 </CheckboxGroup>
@@ -263,7 +263,7 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
                 >
                   <HStack spacing={4}>
                     {DAY_LABELS.map(day => (
-                      <Checkbox key={day} value={day}>{day}</Checkbox>
+                      <Checkbox key={day} id={`day-${day}`} value={day}>{day}</Checkbox>
                     ))}
                   </HStack>
                 </CheckboxGroup>
@@ -291,7 +291,7 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
                          borderRadius={5} p={2}>
                     {TIME_SLOTS.map(({ id, label }) => (
                       <Box key={id}>
-                        <Checkbox key={id} size="sm" value={id}>
+                        <Checkbox key={id} id={`time-${id}`} size="sm" value={id}>
                           {id}교시({label})
                         </Checkbox>
                       </Box>
@@ -320,7 +320,7 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
                          borderRadius={5} p={2}>
                     {allMajors.map(major => (
                       <Box key={major}>
-                        <Checkbox key={major} size="sm" value={major}>
+                        <Checkbox key={major} id={`major-${major}`} size="sm" value={major}>
                           {major.replace(/<p>/gi, ' ')}
                         </Checkbox>
                       </Box>
